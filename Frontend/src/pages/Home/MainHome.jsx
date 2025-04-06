@@ -14,39 +14,39 @@ import { store } from "../../store";
 import { addMessage } from "../../store/messageSlice";
 
 const MainHome = () => {
-  const userMessage = useRef()
-  const [loaderStatus ,setloaderStatus] = useState(false)
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const userMessage = useRef();
+  const [loaderStatus, setloaderStatus] = useState(false);
 
-  const messageList =  useSelector(store =>store.messages);
-  const dispatch = useDispatch()
-  console.log("messagelist is : ",messageList)
-  const handleAIMessage = async ( event ) =>{
+  const messageList = useSelector((store) => store.messages);
+  const dispatch = useDispatch();
+  console.log("messagelist is : ", messageList);
+  const handleAIMessage = async (event) => {
     event.preventDefault();
-    setloaderStatus(true)
+    setloaderStatus(true);
     const messageObject = {
-      message:userMessage.current.value,
-      sender:"user",
+      message: userMessage.current.value,
+      sender: "user",
     };
-    dispatch(addMessage(messageObject))
-    const respoce  = await fetch("http://localhost:8000/query", {
+    dispatch(addMessage(messageObject));
+    const respoce = await fetch(`${apiUrl}`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message: messageObject.message })
+      body: JSON.stringify({ message: messageObject.message }),
     });
-    
-    const data = await respoce.json();
-    console.log("Final respoce data is : ",data);
-    data.sender = "ai";
-    console.log("The updated data : ", data)
-    dispatch(addMessage(data))
-    setloaderStatus(false)
-    
-    console.log(messageList)
-    userMessage.current.value = "";
 
-  }
+    const data = await respoce.json();
+    console.log("Final respoce data is : ", data);
+    data.sender = "ai";
+    console.log("The updated data : ", data);
+    dispatch(addMessage(data));
+    setloaderStatus(false);
+
+    console.log(messageList);
+    userMessage.current.value = "";
+  };
   const messages = [
     {
       id: 1, // Unique key for React rendering
@@ -140,7 +140,6 @@ const MainHome = () => {
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
-
 
   return (
     <>
@@ -248,17 +247,24 @@ const MainHome = () => {
                       : "bg-gray-200 text-gray-800 rounded-bl-none"
                   }`}
                 >
-                  <p>{msg.sender == "user"? msg.message : msg?.response?.summary}</p>
+                  <p>
+                    {msg.sender == "user"
+                      ? msg.message
+                      : msg?.response?.summary}
+                  </p>
                 </div>
               </div>
             ))}
-            {
-              loaderStatus &&  <img src="/images/loader.svg" className="w-12 h-12" alt="" />
-            }
-            
+          {loaderStatus && (
+            <img src="/images/loader.svg" className="w-12 h-12" alt="" />
+          )}
+
           {/* <div ref={messagesEndRef} /> */}
         </div>
-        <form className="w-5/6 md:w-3/6 min-w-72 p-1 " onSubmit={handleAIMessage}>
+        <form
+          className="w-5/6 md:w-3/6 min-w-72 p-1 "
+          onSubmit={handleAIMessage}
+        >
           <div class="w-full mb-4 border border-gray-200 dark:border-gray-600 rounded-4xl overflow-hidden bg-gray-50 ">
             <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-stone-950">
               <label for="comment" class="sr-only">
@@ -333,8 +339,8 @@ const MainHome = () => {
                       </div> */}
 
                 <button
-                  onClick={()=>{
-                    handleAIMessage("Which crop is best for india ? ")
+                  onClick={() => {
+                    handleAIMessage("Which crop is best for india ? ");
                   }}
                   type="submit"
                   class="inline-flex items-center rounded-full p-2 text-xs font-medium text-center text-white bg-purple-700  focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-900 hover:bg-purple-800"

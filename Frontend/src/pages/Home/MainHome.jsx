@@ -1,129 +1,36 @@
 import React, { useEffect, useRef, useState } from "react";
-import { PiFarmFill } from "react-icons/pi";
-import { GoSidebarCollapse } from "react-icons/go";
-import { AiOutlineWechatWork } from "react-icons/ai";
-import { FaArrowCircleUp } from "react-icons/fa";
-import { FaArrowUp } from "react-icons/fa";
-import Navigation from "../../components/Navigation";
-import Sidebar from "../../components/Sidebar";
-import { GoSidebarExpand } from "react-icons/go";
-import { MdDarkMode } from "react-icons/md";
-import { MdLightMode } from "react-icons/md";
-import { useDispatch, useSelector } from "react-redux";
-import { store } from "../../store";
-import { addMessage } from "../../store/messageSlice";
+import { 
+  Leaf, 
+  PanelLeftClose, 
+  MessageSquare, 
+  ArrowUp, 
+  Paperclip, 
+  Mic, 
+  Moon, 
+  Sun, 
+  Sparkles, 
+  Bot, 
+  User 
+} from "lucide-react";
 
 const MainHome = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
   const userMessage = useRef();
-  const [loaderStatus, setloaderStatus] = useState(false);
-
-  const messageList = useSelector((store) => store.messages);
-  const dispatch = useDispatch();
-  console.log("messagelist is : ", messageList);
-  const handleAIMessage = async (event) => {
-    event.preventDefault();
-    setloaderStatus(true);
-    const messageObject = {
-      message: userMessage.current.value,
-      sender: "user",
-    };
-    dispatch(addMessage(messageObject));
-    const respoce = await fetch(`${apiUrl}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message: messageObject.message }),
-    });
-
-    const data = await respoce.json();
-    console.log("Final respoce data is : ", data);
-    data.sender = "ai";
-    console.log("The updated data : ", data);
-    dispatch(addMessage(data));
-    setloaderStatus(false);
-
-    console.log(messageList);
-    userMessage.current.value = "";
-  };
-  const messages = [
+  const messagesEndRef = useRef();
+  const [loaderStatus, setLoaderStatus] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Simulated message list (replace with your Redux state)
+  const [messageList, setMessageList] = useState([
     {
-      id: 1, // Unique key for React rendering
-      text: "Hello! How can I help you today?",
-      sender: "ai", // 'ai' or 'user'
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      text: "What’s the weather like today?",
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 3,
-      text: "I’m a text-based AI, so I can’t fetch real-time weather. Try asking a general question!",
+      id: 1,
+      message: "Hello! I'm your AI farming assistant. How can I help you today?",
       sender: "ai",
       timestamp: new Date().toISOString(),
-    },
-    {
-      id: 1, // Unique key for React rendering
-      text: "Hello! How can I help you today?",
-      sender: "ai", // 'ai' or 'user'
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      text: "What’s the weather like today?",
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 3,
-      text: "I’m a text-based AI, so I can’t fetch real-time weather. Try asking a general question!",
-      sender: "ai",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 1, // Unique key for React rendering
-      text: "Hello! How can I help you today?",
-      sender: "ai", // 'ai' or 'user'
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      text: "What’s the weather like today?",
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 3,
-      text: "I’m a text-based AI, so I can’t fetch real-time weather. Try asking a general question!",
-      sender: "ai",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 1, // Unique key for React rendering
-      text: "Hello! How can I help you today?",
-      sender: "ai", // 'ai' or 'user'
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      text: "What’s the weather like today?",
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 3,
-      text: "I’m a text-based AI, so I can’t fetch real-time weather. Try asking a general question!",
-      sender: "ai",
-      timestamp: new Date().toISOString(),
-    },
-  ];
+    }
+  ]);
 
   const [theme, setTheme] = useState(() => {
-    // On first load, read from localStorage or default to light
     return localStorage.getItem("theme") || "light";
   });
 
@@ -133,226 +40,258 @@ const MainHome = () => {
     } else {
       document.documentElement.classList.remove("dark");
     }
-
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messageList]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
+  const handleAIMessage = async (event) => {
+    if (event) event.preventDefault();
+    if (!userMessage.current.value.trim()) return;
+    
+    setLoaderStatus(true);
+    const newUserMessage = {
+      id: Date.now(),
+      message: userMessage.current.value,
+      sender: "user",
+      timestamp: new Date().toISOString(),
+    };
+    
+    setMessageList(prev => [...prev, newUserMessage]);
+    userMessage.current.value = "";
+    setIsTyping(false);
+    
+    // Simulate AI response
+    setTimeout(() => {
+      const aiResponse = {
+        id: Date.now() + 1,
+        message: "I'm processing your request about farming. This is a simulated response.",
+        sender: "ai",
+        timestamp: new Date().toISOString(),
+      };
+      setMessageList(prev => [...prev, aiResponse]);
+      setLoaderStatus(false);
+    }, 1500);
+  };
+
+  const handleTextareaChange = (e) => {
+    setIsTyping(e.target.value.length > 0);
+  };
+
+  const quickActions = [
+    "Best crops for my region",
+    "Soil health analysis",
+    "Weather forecast",
+    "Pest control tips"
+  ];
+
   return (
-    <>
-      <Sidebar />
-      {/* <button
-        data-drawer-target="default-sidebar"
-        data-drawer-toggle="default-sidebar"
-        aria-controls="default-sidebar"
-        type="button"
-        class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-      >
-        <span class="sr-only">Open sidebar</span>
-        <svg
-          class="w-6 h-6"
-          aria-hidden="true"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            clip-rule="evenodd"
-            fill-rule="evenodd"
-            d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-          ></path>
-        </svg>
-      </button> */}
-
-      <aside
-        id="default-sidebar"
-        class="fixed top-0 left-0 z-40 w-16 h-screen transition-transform -translate-x-full sm:translate-x-0"
-        aria-label="Sidebar"
-      >
-        <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-stone-950">
-          <ul class="space-y-2 font-medium flex flex-col items-center w-full gap-4">
-            <li>
-              <a
-                href="#"
-                class="flex items-center justify-center w-10 h-10  text-gray-900 rounded-lg dark:text-white"
-              >
-                <PiFarmFill className="w-6 h-6 text-purple-500" />
-              </a>
-            </li>
-            <li>
-              {/* <div class="text-center">
-                <button
-                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                  type="button"
-                  data-drawer-target="drawer-navigation"
-                  data-drawer-show="drawer-navigation"
-                  aria-controls="drawer-navigation"
-                >
-                  Show navigation
-                </button>
-              </div> */}
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+      {/* Enhanced Sidebar */}
+      <aside className="relative z-50">
+        <div className="fixed top-0 left-0 h-screen w-16 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-lg transition-all duration-300 hover:w-20">
+          <div className="h-full px-3 py-4 flex flex-col items-center gap-6">
+            {/* Logo */}
+            <div className="p-2.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg transform transition-transform hover:scale-110">
+              <Leaf className="w-6 h-6 text-white" />
+            </div>
+            
+            {/* Navigation Items */}
+            <div className="flex-1 flex flex-col gap-4 mt-4">
               <button
-                href="#"
-                type="button"
-                data-drawer-target="drawer-navigation"
-                data-drawer-show="drawer-navigation"
-                aria-controls="drawer-navigation"
-                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="group p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
               >
-                <GoSidebarCollapse className="w-5 h-5" />
+                <PanelLeftClose className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
               </button>
-            </li>
-            <li>
-              <a
-                href="#"
-                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
-              >
-                <AiOutlineWechatWork className="w-6 h-6" />
-              </a>
-            </li>
-
-            <li>
-              <button onClick={toggleTheme}>
-                {theme === "dark" ? (
-                  <MdLightMode className="w-6 h-6 text-white" />
-                ) : (
-                  <MdDarkMode className="w-5 h-5" />
-                )}
-                {/* <MdDarkMode className="w-5 h-5" />
-                <MdLightMode className="w-5 h-5" /> */}
+              
+              <button className="group p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+                <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
               </button>
-            </li>
-          </ul>
+            </div>
+            
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5 text-yellow-500 group-hover:rotate-180 transition-all duration-500" />
+              ) : (
+                <Moon className="w-5 h-5 text-gray-600 group-hover:rotate-180 transition-all duration-500" />
+              )}
+            </button>
+          </div>
         </div>
       </aside>
 
-      <div class="p-4 sm:ml-14 h-full  bg-gray-100 dark:bg-neutral-800 min-h-screen max-h-screen overflow-y-scroll scrollbar-hide flex justify-center items-center flex-col">
-        <Navigation />
-        <div className="flex-1 p-4 sm:ml-14 overflow-y-scroll scrollbar-hide h-10/12  w-full">
-          {messageList &&
-            messageList.messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex mb-4 ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-xs md:max-w-md lg:max-w-lg rounded-lg p-3 ${
-                    msg.sender === "user"
-                      ? "bg-green-600 text-white rounded-br-none"
-                      : "bg-gray-200 text-gray-800 rounded-bl-none"
-                  }`}
-                >
-                  <p>
-                    {msg.sender == "user"
-                      ? msg.message
-                      : msg?.response?.summary}
-                  </p>
-                </div>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col ml-16">
+        {/* Header */}
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900 dark:to-purple-800 rounded-lg">
+                <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-300" />
               </div>
-            ))}
-          {loaderStatus && (
-            <img src="/images/loader.svg" className="w-12 h-12" alt="" />
-          )}
-
-          {/* <div ref={messagesEndRef} /> */}
-        </div>
-        <form
-          className="w-5/6 md:w-3/6 min-w-72 p-1 "
-          onSubmit={handleAIMessage}
-        >
-          <div class="w-full mb-4 border border-gray-200 dark:border-gray-600 rounded-4xl overflow-hidden bg-gray-50 ">
-            <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-stone-950">
-              <label for="comment" class="sr-only">
-                Ask your question
-              </label>
-              <textarea
-                id="comment"
-                rows="2"
-                class="w-full  text-sm text-gray-900 p-3 bg-white border-0 dark:bg-stone-950 focus:ring-0 dark:text-white dark:placeholder-gray-400"
-                placeholder="Ask your question..."
-                required
-                ref={userMessage}
-              ></textarea>
-              <div class="flex items-center justify-end px-3 py-1  dark:border-gray-600 border-gray-200">
-                {/* <div className="w-full h-auto">
-                  {
-                    
-                  }
-                </div> */}
-
-                {/* <div class="flex ps-0 space-x-1 rtl:space-x-reverse sm:ps-2">
-                        <button
-                          type="button"
-                          class="inline-flex justify-center items-center p-2 text-gray-500 rounded-sm cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
-                        >
-                          <svg
-                            class="w-4 h-4"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 12 20"
-                          >
-                            <path
-                              stroke="currentColor"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M1 6v8a5 5 0 1 0 10 0V4.5a3.5 3.5 0 1 0-7 0V13a2 2 0 0 0 4 0V6"
-                            />
-                          </svg>
-                          <span class="sr-only">Attach file</span>
-                        </button>
-                        <button
-                          type="button"
-                          class="inline-flex justify-center items-center p-2 text-gray-500 rounded-sm cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
-                        >
-                          <svg
-                            class="w-4 h-4"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="currentColor"
-                            viewBox="0 0 16 20"
-                          >
-                            <path d="M8 0a7.992 7.992 0 0 0-6.583 12.535 1 1 0 0 0 .12.183l.12.146c.112.145.227.285.326.4l5.245 6.374a1 1 0 0 0 1.545-.003l5.092-6.205c.206-.222.4-.455.578-.7l.127-.155a.934.934 0 0 0 .122-.192A8.001 8.001 0 0 0 8 0Zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z" />
-                          </svg>
-                          <span class="sr-only">Set location</span>
-                        </button>
-                        <button
-                          type="button"
-                          class="inline-flex justify-center items-center p-2 text-gray-500 rounded-sm cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
-                        >
-                          <svg
-                            class="w-4 h-4"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="currentColor"
-                            viewBox="0 0 20 18"
-                          >
-                            <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
-                          </svg>
-                          <span class="sr-only">Upload image</span>
-                        </button>
-                      </div> */}
-
-                <button
-                  onClick={() => {
-                    handleAIMessage("Which crop is best for india ? ");
-                  }}
-                  type="submit"
-                  class="inline-flex items-center rounded-full p-2 text-xs font-medium text-center text-white bg-purple-700  focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-900 hover:bg-purple-800"
-                >
-                  <FaArrowUp className="text-base" />
-                </button>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-800 dark:text-white">AI Farming Assistant</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Powered by advanced AI</p>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 rounded-full text-xs font-medium">
+                Online
+              </span>
+            </div>
           </div>
-        </form>
+        </header>
+
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+          {messageList.length === 1 && (
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              {quickActions.map((action, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    userMessage.current.value = action;
+                    handleAIMessage();
+                  }}
+                  className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-sm text-gray-600 dark:text-gray-300 hover:border-purple-400 dark:hover:border-purple-600 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200"
+                >
+                  {action}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {messageList.map((msg, index) => (
+            <div
+              key={msg.id}
+              className={`flex gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"} animate-fadeIn`}
+              style={{animation: 'fadeIn 0.3s ease-out'}}
+            >
+              {msg.sender === "ai" && (
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              )}
+              
+              <div
+                className={`max-w-[70%] ${
+                  msg.sender === "user"
+                    ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl rounded-tr-sm"
+                    : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-sm border border-gray-200 dark:border-gray-700"
+                } px-4 py-3 shadow-md transform transition-all duration-200 hover:shadow-lg`}
+              >
+                <p className="text-sm leading-relaxed">{msg.message}</p>
+                <p className={`text-xs mt-1 ${msg.sender === "user" ? "text-purple-100" : "text-gray-400"}`}>
+                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              
+              {msg.sender === "user" && (
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {loaderStatus && (
+            <div className="flex gap-3 animate-fadeIn" style={{animation: 'fadeIn 0.3s ease-out'}}>
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-md border border-gray-200 dark:border-gray-700">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative flex items-end gap-2 bg-gray-50 dark:bg-gray-800 rounded-2xl p-2 border border-gray-200 dark:border-gray-700 focus-within:border-purple-400 dark:focus-within:border-purple-600 transition-colors">
+              <button
+                type="button"
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <Paperclip className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              </button>
+              
+              <textarea
+                ref={userMessage}
+                onChange={handleTextareaChange}
+                rows="1"
+                className="flex-1 bg-transparent border-0 outline-none resize-none text-gray-800 dark:text-gray-200 placeholder-gray-400 text-sm py-2"
+                placeholder="Ask anything about farming..."
+                style={{lineHeight: '1.5'}}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAIMessage(e);
+                  }
+                }}
+              />
+              
+              <button
+                type="button"
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <Mic className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              </button>
+              
+              <button
+                onClick={handleAIMessage}
+                disabled={!isTyping}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  isTyping
+                    ? "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg transform hover:scale-105"
+                    : "bg-gray-200 dark:bg-gray-700"
+                }`}
+              >
+                <ArrowUp className={`w-4 h-4 ${isTyping ? "text-white" : "text-gray-400"}`} />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 text-center mt-2">
+              AI can make mistakes. Consider checking important information.
+            </p>
+          </div>
+        </div>
       </div>
-    </>
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </div>
   );
 };
 
